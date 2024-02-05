@@ -1,0 +1,423 @@
+{
+  "Uuid": "a19d8f41-b681-4d82-a684-c47c9a10bfb8",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "Room Tags",
+  "ElementResolver": {
+    "ResolutionMap": {
+      "DSCore.String.Split": {
+        "Key": "DSCore.String",
+        "Value": "DSCoreNodes.dll"
+      },
+      "DSCore.String": {
+        "Key": "DSCore.String",
+        "Value": "DSCoreNodes.dll"
+      }
+    }
+  },
+  "Inputs": [
+    {
+      "Id": "b1d2c2b82c924df8ac5b0d7addfceb1a",
+      "Name": "B. Chose option:\r\n1. Keep Room location | Move Tag to same point\r\n2. Keep Room location | Move Tag to geometrical center\r\n3. Move Room + Tag location to gemetrical center",
+      "Type": "number",
+      "Value": "2",
+      "MaximumValue": 3.0,
+      "MinimumValue": 1.0,
+      "StepValue": 1.0,
+      "NumberType": "Double",
+      "Description": "A slider that produces numeric values.",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "5bc772adfbda479b88e039ae1095a830",
+      "Name": "A. Process only Room Tags in warnings",
+      "Type": "boolean",
+      "Value": "false",
+      "Description": "Selection between a true and false.",
+      "SelectedIndex": 0
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "267285e71d6240969a8722dd18825a95",
+      "Name": "Result:",
+      "Type": "unknown",
+      "InitialValue": "",
+      "Description": "Visualize the node's output"
+    }
+  ],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Load the Python Standard and DesignScript Libraries\r\nimport clr\r\nimport sys\r\nimport os.path\r\nfrom datetime import datetime\r\nfrom System import Environment\r\nsys.path.append('C:\\Program Files (x86)\\IronPython 2.7\\Lib')\r\nimport System\r\nfrom System import Array\r\nfrom System.Collections.Generic import *\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\nclr.AddReference(\"RevitNodes\")\r\nimport Revit\r\nclr.ImportExtensions(Revit.Elements)\r\nclr.ImportExtensions(Revit.GeometryConversion)\r\nclr.AddReference(\"RevitServices\")\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager \r\nfrom RevitServices.Transactions import TransactionManager \r\n\r\nclr.AddReference(\"RevitAPI\")\r\nclr.AddReference(\"RevitAPIUI\")\r\n\r\nimport Autodesk \r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.UI import *\r\nimport time\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication \r\napp = uiapp.Application \r\nuidoc = uiapp.ActiveUIDocument\r\n\r\n\r\nisolate_war = IN[0]\r\n\r\n\r\n\r\n\r\nif isolate_war:\r\n\twar_room_tag_ids, war_rooms = [], []\r\n\twarnings = doc.GetWarnings()\r\n\tfor w in warnings:\r\n\t\tif \"Room Tag is outside of its Room.\" in w.GetDescriptionText():\r\n\t\t\tids = w.GetFailingElements()\r\n\t\t\tfor i in ids:\r\n\t\t\t\twar_room_tag_ids.Add(i)\r\n\twar_tags = [doc.GetElement(i) for i in war_room_tag_ids]\r\n\twar_rooms = [i.Room for i in war_tags]\r\n\tOUT = war_tags, war_rooms\r\n\r\nelse:\r\n\ttags = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_RoomTags).WhereElementIsNotElementType().ToElements()\r\n\trooms = [i.Room for i in tags]\r\n\tOUT = tags, rooms\r\n\t",
+      "Engine": "IronPython2",
+      "VariableInputPorts": true,
+      "Id": "673f8cb599a14421941f2a5cdafe5fc8",
+      "Inputs": [
+        {
+          "Id": "83a6e44ff8f94c8a98d8870caaf33b69",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "faba6ac5434a4aeab330afb53d92e74f",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\nimport sys\r\nimport os.path\r\nfrom System import Environment\r\nsys.path.append('C:\\Program Files (x86)\\IronPython 2.7\\Lib')\r\nimport System\r\nfrom System import Array\r\nfrom System.Collections.Generic import *\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import (Geometry, Point as pt)\r\nclr.AddReference(\"RevitNodes\")\r\nimport Revit\r\nclr.ImportExtensions(Revit.Elements)\r\nclr.ImportExtensions(Revit.GeometryConversion)\r\nclr.AddReference(\"RevitServices\")\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager \r\nfrom RevitServices.Transactions import TransactionManager \r\nclr.AddReference(\"RevitAPI\")\r\nclr.AddReference(\"RevitAPIUI\")\r\nimport Autodesk \r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.UI import *\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication \r\napp = uiapp.Application \r\nuidoc = uiapp.ActiveUIDocument\r\n\r\n### NOW LIFT WHAT THOUSANDS CAN'T SHIFT ###\r\n\r\ntags = UnwrapElement(IN[0])\r\nrooms = UnwrapElement(IN[1])\r\nopt = IN[2]\r\n\r\ncount_tags = 0\r\ncount_rooms = 0\r\n\r\n# GET ROOM CENTER\r\ndef get_center(room):\r\n\t# level elevation - unit millimeter \r\n    elevation = room.Level.Elevation * 304.8\r\n    # get enumerator to loop geo-objects\r\n    geoobj = room.GetGeometryObjectFromReference(Reference(room)).GetEnumerator()\r\n    for obj in geoobj:\r\n      \troom_geometry = obj.ToProtoType()\r\n        point = room_geometry.Centroid()\r\n        center = point.ByCoordinates(point.X, point.Y, elevation)\r\n        break\r\n    return center.ToXyz()\r\n\r\n# CENTER THE ROOMS\r\ndef center_rooms(rooms):\r\n    count = 0\r\n    for room in rooms:\r\n        try:\r\n            # level elevation - unit millimeter \r\n            elevation = room.Level.Elevation * 304.8\r\n            # get enumerator to loop geo-objects\r\n            geoobj = room.GetGeometryObjectFromReference(Reference(room)).GetEnumerator()\r\n            # loop geo-object\r\n            for obj in geoobj:\r\n                # convert to dynamo type\r\n                room_geometry = obj.ToProtoType()\r\n                point = room_geometry.Centroid()\r\n                center = point.ByCoordinates(point.X, point.Y, elevation) # create location point with level elevation\r\n                current = room.Location.Point # get current element location\r\n                # MOVE THE ROOM TO THE NEW LOCATION\r\n                room.Location.Move(center.ToXyz() - current)\r\n                count += 1\r\n        except:\r\n            continue\r\n    return count\r\n    \r\n# ALIGN THE TAGS\r\ndef align_tags(tags, to_center): \r\n    count = 0\r\n    for tag in tags:\r\n    \tcurrent_loc = tag.Location.Point\r\n    \tif to_center:\r\n    \t\tnew_loc = get_center(tag.Room)\r\n    \telse:\r\n            new_loc = tag.Room.Location.Point\r\n        tag.Location.Move(new_loc - current_loc)\r\n        count += 1\r\n    return count\r\n    \r\n\r\nTransactionManager.Instance.EnsureInTransaction(doc)\r\n\r\nif opt == 1:\r\n    result = align_tags(tags, False)\r\nelif opt == 2:\r\n    result = align_tags(tags, True)\r\nelif opt == 3:\r\n    center_rooms(rooms)\r\n    result = align_tags(tags, False)   \r\n\r\nTransactionManager.Instance.TransactionTaskDone()\r\n\r\nOUT = result + \" Rooms Tags were moved.\"\r\n",
+      "Engine": "IronPython2",
+      "VariableInputPorts": true,
+      "Id": "35253e84d147415cbd135f81c3fc8744",
+      "Inputs": [
+        {
+          "Id": "45f8233be5b9441b8044ca2c49ae669f",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "e78cecdbee01439592d3315c87f05b89",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "fb322c5fd6d34ed1bb3262e234f8586f",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "21f2f92843fa4ab48db83068ca92509f",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "tags[0];\nrooms[1];",
+      "Id": "8430f783f9c642fe9261a22b5c993357",
+      "Inputs": [
+        {
+          "Id": "d16aad6ab5a4467d86369ff4f35836cf",
+          "Name": "tags",
+          "Description": "tags",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "506a553ee6d04e7e8ce2b473b8c1cca1",
+          "Name": "rooms",
+          "Description": "rooms",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "164ee7c228794c23ae894f292f69098e",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b09cd9574c2f41f7a18560f6366cc13e",
+          "Name": "",
+          "Description": "Value of expression at line 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DoubleSlider, CoreNodeModels",
+      "NodeType": "NumberInputNode",
+      "NumberType": "Double",
+      "MaximumValue": 3.0,
+      "MinimumValue": 1.0,
+      "StepValue": 1.0,
+      "InputValue": 2.0,
+      "Id": "b1d2c2b82c924df8ac5b0d7addfceb1a",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "119d5276455f4e6e810e5ad4d52921d2",
+          "Name": "",
+          "Description": "Double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "5bc772adfbda479b88e039ae1095a830",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "4321617b30c04a94a8fd979e2643e25d",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "267285e71d6240969a8722dd18825a95",
+      "Inputs": [
+        {
+          "Id": "4164cbf12a444ee3821c5af30472ddc6",
+          "Name": "",
+          "Description": "Node to show output from",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "829f037de68b4915b3e4e217e27b4ca6",
+          "Name": "",
+          "Description": "Node output",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the node's output"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "faba6ac5434a4aeab330afb53d92e74f",
+      "End": "506a553ee6d04e7e8ce2b473b8c1cca1",
+      "Id": "67e92d28816b4d5185dedd19f7f32aab"
+    },
+    {
+      "Start": "faba6ac5434a4aeab330afb53d92e74f",
+      "End": "d16aad6ab5a4467d86369ff4f35836cf",
+      "Id": "22d3ea9747d14ff886cab0dcb4cb4a95"
+    },
+    {
+      "Start": "21f2f92843fa4ab48db83068ca92509f",
+      "End": "4164cbf12a444ee3821c5af30472ddc6",
+      "Id": "75a0ce08d9a54f59a46f950016c3fde7"
+    },
+    {
+      "Start": "164ee7c228794c23ae894f292f69098e",
+      "End": "45f8233be5b9441b8044ca2c49ae669f",
+      "Id": "f56681f6adb5436581ee6f65f8788f83"
+    },
+    {
+      "Start": "b09cd9574c2f41f7a18560f6366cc13e",
+      "End": "e78cecdbee01439592d3315c87f05b89",
+      "Id": "7e419ec5fcb94965b39e36e2a09411d8"
+    },
+    {
+      "Start": "119d5276455f4e6e810e5ad4d52921d2",
+      "End": "fb322c5fd6d34ed1bb3262e234f8586f",
+      "Id": "380b682b31a34873a24c6eff3f8cef8d"
+    },
+    {
+      "Start": "4321617b30c04a94a8fd979e2643e25d",
+      "End": "83a6e44ff8f94c8a98d8870caaf33b69",
+      "Id": "df881d8af7474471b86f312511913c9f"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Thumbnail": "",
+  "GraphDocumentationURL": null,
+  "ExtensionWorkspaceData": [
+    {
+      "ExtensionGuid": "28992e1d-abb9-417f-8b1b-05e053bee670",
+      "Name": "Properties",
+      "Version": "2.12",
+      "Data": {}
+    },
+    {
+      "ExtensionGuid": "DFBD9CC0-DB40-457A-939E-8C8555555A9D",
+      "Name": "Generative Design",
+      "Version": "1.10",
+      "Data": {}
+    }
+  ],
+  "Author": "None provided",
+  "Linting": {
+    "activeLinter": "None",
+    "activeLinterId": "7b75fb44-43fd-4631-a878-29f4d5d8399a",
+    "warningCount": 0,
+    "errorCount": 0
+  },
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 100.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.12.1.8246",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": false,
+        "Name": "Python Script",
+        "Id": "673f8cb599a14421941f2a5cdafe5fc8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 519.48400939958174,
+        "Y": -847.99505250981292
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "35253e84d147415cbd135f81c3fc8744",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 886.91790128033244,
+        "Y": -860.30298385443893
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "8430f783f9c642fe9261a22b5c993357",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 684.18262352372426,
+        "Y": -852.01021100657215
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "B. Chose option:\r\n1. Keep Room location | Move Tag to same point\r\n2. Keep Room location | Move Tag to geometrical center\r\n3. Move Room + Tag location to gemetrical center",
+        "Id": "b1d2c2b82c924df8ac5b0d7addfceb1a",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -153.55174000426,
+        "Y": -747.877240109199
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "A. Process only Room Tags in warnings",
+        "Id": "5bc772adfbda479b88e039ae1095a830",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 131.319292076333,
+        "Y": -850.20663628478314
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Result:",
+        "Id": "267285e71d6240969a8722dd18825a95",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "X": 1040.293528975219,
+        "Y": -859.396187238202
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "8fdb144cfcce425bbd263bb219bec8fc",
+        "Title": "B. Chose option:\r\n1. Keep Room location | Move Tag to same point\r\n2. Keep Room location | Move Tag to geometrical center\r\n3. Move Room + Tag location to gemetrical center\r\n\r\n",
+        "Nodes": [
+          "b1d2c2b82c924df8ac5b0d7addfceb1a",
+          "5bc772adfbda479b88e039ae1095a830"
+        ],
+        "Left": -163.55174000426,
+        "Top": -1033.2066362847831,
+        "Width": 603.87103208059307,
+        "Height": 353.32939617558418,
+        "FontSize": 24.0,
+        "InitialTop": -850.20663628478314,
+        "InitialHeight": 246.47677245698526,
+        "TextblockHeight": 173.0,
+        "Background": "#FFD3D3D3"
+      }
+    ],
+    "X": 682.38311089576064,
+    "Y": 1558.1619560558775,
+    "Zoom": 1.1728503185946559
+  }
+}
